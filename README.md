@@ -6,7 +6,7 @@ API RAG con FastAPI que responde preguntas usando el contenido de un PDF.
 
 - Docker Desktop instalado y corriendo.
 - Archivo `.env` configurado a partir de `.env.example`.
-- PDF dentro de la carpeta `data`.
+- PDF dentro de la carpeta `data`, o cargarlo luego por API.
 
 ## Configurar .env
 
@@ -20,7 +20,7 @@ Luego editar `.env` y completar:
 
 - `LLM_PROVIDER` con el proveedor que vas a usar.
 - La API key del proveedor elegido.
-- `PDF_PATH` con la ruta del PDF dentro del contenedor.
+- `PDF_PATH` con la ruta del PDF dentro del contenedor, si queres indexar un PDF al iniciar.
 
 Ejemplo:
 
@@ -43,6 +43,8 @@ PDF_PATH=/data/challange-1.pdf
 ```
 
 El archivo `.env` no debe subirse al repositorio porque contiene credenciales.
+
+Si no existe el archivo configurado en `PDF_PATH`, la API igual inicia y queda esperando que subas un PDF por el endpoint `POST /documents/upload`.
 
 ## LLMs soportados
 
@@ -85,6 +87,38 @@ Documentacion interactiva de la API:
 
 ```text
 http://localhost:8888/docs
+```
+
+## Cargar documento por API
+
+Endpoint:
+
+```text
+POST http://localhost:8888/documents/upload
+```
+
+El campo del formulario debe llamarse `file` y debe ser un PDF.
+
+Ejemplo con PowerShell:
+
+```powershell
+curl.exe -X POST "http://localhost:8888/documents/upload" -F "file=@data/challange-1.pdf"
+```
+
+Cuando se sube un nuevo PDF, la API guarda el archivo en `/data`, elimina el indice anterior de Chroma y vuelve a indexar el documento.
+
+Luego se pueden hacer preguntas con:
+
+```text
+POST http://localhost:8888/ask
+```
+
+Body:
+
+```json
+{
+  "question": "Cual es el tema principal del documento?"
+}
 ```
 
 ## Ver logs
