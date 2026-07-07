@@ -1,5 +1,6 @@
 import os
 import shutil
+import uuid
 from pathlib import Path
 from typing import List
 
@@ -35,16 +36,23 @@ class DocumentUploadResponse(BaseModel):
     agent_ready: bool
 
 
-def initialize_agent(pdf_path: str, rebuild_index: bool = False):
+def initialize_agent(
+    pdf_path: str,
+    persist_directory: str | None = None,
+    rebuild_index: bool = False,
+):
     global agent, current_pdf_path
+
+    index_directory = persist_directory or str(CHROMA_DIR)
 
     if rebuild_index:
         agent = None
         current_pdf_path = None
-        if CHROMA_DIR.exists():
-            shutil.rmtree(CHROMA_DIR)
+        index_path = Path(index_directory)
+        if index_path.exists():
+            shutil.rmtree(index_path)
 
-    new_agent = RAGAgent(pdf_path=pdf_path, persist_directory=str(CHROMA_DIR))
+    new_agent = RAGAgent(pdf_path=pdf_path, persist_directory=index_directory)
     new_agent.load_and_index()
 
     agent = new_agent
@@ -101,7 +109,12 @@ async def upload_document(file: UploadFile = File(...)):
     finally:
         await file.close()
 
-    initialize_agent(pdf_path=str(destination), rebuild_index=True)
+    upload_index_dir = DATA_DIR / "chroma_uploads" / uuid.uuid4().hex
+    initialize_agent(
+        pdf_path=str(destination),
+        persist_directory=str(upload_index_dir),
+        rebuild_index=True,
+    )
 
     return DocumentUploadResponse(
         filename=filename,
