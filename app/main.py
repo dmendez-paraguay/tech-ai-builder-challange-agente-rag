@@ -62,8 +62,7 @@ def initialize_agent(
 @app.on_event("startup")
 def startup_event():
     """
-    If a configured PDF exists, index it. Otherwise, start the API and wait
-    for a document upload through POST /documents/upload.
+
     """
     pdf_path = os.getenv("PDF_PATH", "/data/documento.pdf")
 
