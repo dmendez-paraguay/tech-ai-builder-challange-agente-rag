@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from app.rag_agent import RAGAgent
@@ -19,6 +20,12 @@ agent: RAGAgent | None = None
 current_pdf_path: str | None = None
 DATA_DIR = Path(os.getenv("DATA_DIR", "/data"))
 CHROMA_DIR = DATA_DIR / "chroma_db"
+FRONTEND_DIST = Path(
+    os.getenv(
+        "FRONTEND_DIST",
+        Path(__file__).resolve().parent.parent / "frontend" / "dist",
+    )
+)
 
 
 class Question(BaseModel):
@@ -137,3 +144,13 @@ def ask(payload: Question):
 
     result = agent.query(payload.question)
     return result
+
+
+# Se monta al final para que las rutas de la API y Swagger tengan prioridad.
+# En desarrollo, Vite sirve la interfaz y redirige estas rutas a FastAPI.
+if FRONTEND_DIST.is_dir():
+    app.mount(
+        "/",
+        StaticFiles(directory=str(FRONTEND_DIST), html=True),
+        name="frontend",
+    )

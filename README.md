@@ -10,6 +10,8 @@ API de *Retrieval-Augmented Generation* (RAG) que indexa documentos PDF y respon
 ## Características principales
 
 - API HTTP construida con **FastAPI**, con validación de datos y documentación Swagger automática.
+- Interfaz responsive construida con **React 19**, **TypeScript**, **Vite 8** y **Tailwind CSS 4**.
+- Frontend y API publicados por FastAPI desde el mismo origen, sin configuración CORS.
 - Pipeline RAG orquestado con **LangChain**.
 - Ingesta de archivos PDF mediante endpoint o durante el arranque del servicio.
 - Fragmentación configurable en bloques de 1.000 caracteres con 150 caracteres de solapamiento.
@@ -21,6 +23,20 @@ API de *Retrieval-Augmented Generation* (RAG) que indexa documentos PDF y respon
 - Compatibilidad con Anthropic, NVIDIA NIM, Groq y OpenRouter como proveedores del LLM.
 - Ejecución 100 % en Docker, incluido el servicio de API, el pipeline RAG y ChromaDB.
 - Volumen persistente para conservar documentos e índices al recrear el contenedor.
+
+## Tecnologías y herramientas
+
+| Área | Tecnología | Uso en el proyecto |
+|---|---|---|
+| Backend | Python 3.11, FastAPI y Uvicorn | API HTTP, validación, documentación OpenAPI y servidor ASGI |
+| Pipeline RAG | LangChain | Carga, fragmentación, recuperación y composición de la cadena de preguntas y respuestas |
+| Documentos | PyPDF y `PyPDFLoader` | Extracción del contenido y los metadatos de archivos PDF |
+| Embeddings | Hugging Face y `sentence-transformers/all-MiniLM-L6-v2` | Generación local de representaciones vectoriales |
+| Base vectorial | ChromaDB | Persistencia y búsqueda semántica de fragmentos |
+| Frontend | React 19, TypeScript, Vite 8 y Tailwind CSS 4 | Interfaz para subir documentos y consultar al agente |
+| Infraestructura | Docker y Docker Compose | Construcción y ejecución reproducible de toda la aplicación |
+| Despliegue | Oracle Cloud Infrastructure y Ubuntu 24.04 | Alojamiento de la aplicación en una instancia Compute |
+| Generación | Anthropic, NVIDIA NIM, Groq u OpenRouter | Proveedor configurable del LLM que redacta la respuesta final |
 
 ## Arquitectura y funcionamiento del RAG
 
@@ -36,15 +52,18 @@ El sistema separa la API, la carga documental, el pipeline RAG y la selección d
 
 ```mermaid
 flowchart LR
-    A[PDF] --> B[PyPDFLoader]
+    U[Interfaz React] -->|Sube PDF| A[FastAPI]
+    U -->|Pregunta| A
+    A --> B[PyPDFLoader]
     B --> C[Chunking<br/>1000 caracteres / overlap 150]
     C --> D[Embeddings locales<br/>all-MiniLM-L6-v2]
     D --> E[(ChromaDB)]
-    Q[Pregunta] --> F[Búsqueda por similitud<br/>top k = 4]
+    A --> F[Búsqueda por similitud<br/>top k = 4]
     E --> F
     F --> G[LangChain RetrievalQA]
     G --> H[LLM configurado]
     H --> I[Respuesta + fuentes]
+    I --> U
 ```
 
 Para una descripción más detallada de los componentes, consultá [ARCHITECTURE.md](ARCHITECTURE.md).
@@ -57,7 +76,7 @@ Para ejecutar el proyecto con contenedores:
 - Git para clonar el repositorio.
 - Una API key de alguno de los proveedores LLM soportados.
 
-Para ejecutarlo sin Docker también se requiere **Python 3.11**. El flujo recomendado y verificado por el proyecto es Docker Compose.
+Para trabajar fuera de Docker también se requieren **Python 3.11** y **Node.js 20.19+ o 22.12+**. El flujo recomendado y verificado por el proyecto es Docker Compose.
 
 ## Instalación y ejecución
 
@@ -136,9 +155,9 @@ Respuesta antes de indexar un documento:
 }
 ```
 
-La API queda disponible en:
+La aplicación queda disponible en:
 
-- API: `http://localhost:8888`
+- Interfaz web: `http://localhost:8888`
 - Health check: `http://localhost:8888/health`
 - Swagger UI: `http://localhost:8888/docs`
 - Esquema OpenAPI: `http://localhost:8888/openapi.json`
@@ -154,6 +173,24 @@ docker compose down
 
 # Reconstruir después de cambiar dependencias o el Dockerfile
 docker compose up -d --build --force-recreate
+```
+
+### Desarrollo del frontend
+
+Con FastAPI ejecutándose en el puerto `8888`, iniciá Vite en otra terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Abrí `http://localhost:5173`. Vite redirige internamente `/health`, `/ask` y `/documents/*` hacia FastAPI, por lo que el navegador no necesita CORS.
+
+```bash
+npm run lint
+npm run test
+npm run build
 ```
 
 ## Uso de la API
@@ -210,7 +247,7 @@ curl -X POST "http://localhost:8888/ask" \
   -d '{"question":"¿Cuál es el tema principal del documento?"}'
 ```
 
-Respuesta de ejemplo:
+Formato de respuesta ilustrativo (reemplazalo con una salida real del agente):
 
 ```json
 {
@@ -223,6 +260,55 @@ Respuesta de ejemplo:
 ```
 
 > El texto de la respuesta depende del documento y del modelo configurado. Los números de página provienen de los metadatos de `PyPDFLoader` y comienzan en `0`.
+
+### Ejemplos de preguntas y respuestas generadas
+
+Estas preguntas son deliberadamente genéricas para que funcionen con distintos documentos:
+
+1. `¿Cuál es el tema principal del documento?`
+2. `¿Podés resumir los puntos más importantes del documento?`
+3. `¿Qué dice el documento sobre [tema de interés]?`
+
+Los siguientes bloques están preparados para documentar ejecuciones reales. Después de cargar el PDF de demostración, ejecutá cada pregunta y reemplazá los marcadores con la respuesta y las fuentes devueltas por `POST /ask`.
+
+#### Ejemplo 1
+
+**Pregunta:** `¿Cuál es el tema principal del documento?`
+
+```json
+{
+  "answer": "<PEGAR AQUÍ LA RESPUESTA REAL DEL AGENTE>",
+  "sources": [
+    "<PEGAR AQUÍ LAS FUENTES REALES>"
+  ]
+}
+```
+
+#### Ejemplo 2
+
+**Pregunta:** `¿Podés resumir los puntos más importantes del documento?`
+
+```json
+{
+  "answer": "<PEGAR AQUÍ LA RESPUESTA REAL DEL AGENTE>",
+  "sources": [
+    "<PEGAR AQUÍ LAS FUENTES REALES>"
+  ]
+}
+```
+
+#### Ejemplo 3
+
+**Pregunta:** `¿Qué dice el documento sobre [tema de interés]?`
+
+```json
+{
+  "answer": "<PEGAR AQUÍ LA RESPUESTA REAL DEL AGENTE>",
+  "sources": [
+    "<PEGAR AQUÍ LAS FUENTES REALES>"
+  ]
+}
+```
 
 Si todavía no se indexó un documento, `POST /ask` devuelve HTTP `503`:
 
@@ -244,11 +330,19 @@ Si todavía no se indexó un documento, `POST /ask` devuelve HTTP `503`:
 │   └── llm_factory.py    # Selección y configuración del proveedor LLM
 ├── data/
 │   └── .gitkeep          # Volumen para PDFs e índices de ChromaDB
+├── frontend/
+│   ├── src/
+│   │   ├── components/   # Carga documental, chat y componentes visuales
+│   │   ├── lib/          # Cliente HTTP tipado y utilidades
+│   │   ├── App.tsx       # Workspace principal
+│   │   └── styles.css    # Tailwind y tokens visuales
+│   ├── package.json      # Dependencias y scripts del frontend
+│   └── vite.config.ts    # Build y proxy de desarrollo
 ├── .env.example          # Plantilla de variables de entorno
 ├── .gitignore
 ├── ARCHITECTURE.md       # Diseño y decisiones de arquitectura
 ├── docker-compose.yml    # Servicio, puertos, variables y volumen
-├── Dockerfile            # Imagen Python 3.11 y servidor Uvicorn
+├── Dockerfile            # Build React con Node 22 + API Python 3.11
 ├── requirements.txt      # Dependencias Python fijadas
 └── README.md
 ```
@@ -299,11 +393,12 @@ Se eligió la shape Intel `E5.Flex` porque la `A1.Flex` basada en Arm presentó 
 
 Endpoints públicos del despliegue:
 
+- Interfaz web: `http://137.131.182.97:8888`
 - Health check: `http://137.131.182.97:8888/health`
 - Swagger UI: `http://137.131.182.97:8888/docs`
 - Consultas: `http://137.131.182.97:8888/ask`
 
-> Este despliegue expone HTTP directamente en el puerto `8888`. Para producción se recomienda colocar un proxy inverso como Nginx o Caddy, habilitar HTTPS y restringir el acceso a Swagger si la API maneja documentos privados.
+> Este despliegue expone HTTP directamente en el puerto `8888`. Para producción se recomienda habilitar HTTPS y restringir el acceso a Swagger si la API maneja documentos privados.
 
 ## Licencia
 

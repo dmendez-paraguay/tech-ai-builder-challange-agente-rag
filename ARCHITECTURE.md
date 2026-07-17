@@ -6,13 +6,18 @@ Este proyecto implementa una API RAG (*Retrieval-Augmented Generation*) en Pytho
 
 La solución sigue una arquitectura monolítica modular: todos los componentes se ejecutan en un único servicio, pero las responsabilidades están separadas en módulos para la API, la carga documental, la recuperación vectorial y la selección del modelo de lenguaje.
 
+La interfaz React se compila durante la construcción de la imagen Docker. FastAPI sirve los archivos estáticos resultantes y los endpoints desde el mismo origen, evitando CORS y manteniendo un único puerto público.
+
 ## Diagrama general
 
 ```text
-Cliente HTTP
+Navegador
     |
     v
-FastAPI (app/main.py)
+Interfaz React (frontend/)
+    |
+    v
+FastAPI + archivos estáticos (app/main.py)
     |
     v
 RAGAgent (app/rag_agent.py)
@@ -37,6 +42,8 @@ RAGAgent (app/rag_agent.py)
 ### API HTTP
 
 El archivo `app/main.py` es el punto de entrada de la aplicación. Crea la instancia de FastAPI, expone los endpoints y mantiene en memoria el agente RAG activo.
+
+Después de registrar la API y Swagger, monta `frontend/dist` en `/`. Este orden conserva las rutas HTTP existentes y entrega la interfaz desde la raíz.
 
 Los endpoints disponibles son:
 
@@ -138,9 +145,11 @@ La aplicación se distribuye mediante Docker y Docker Compose.
 
 El contenedor:
 
+- Compila el frontend con Node.js 22 en una etapa separada.
 - Usa Python 3.11.
 - Ejecuta Uvicorn en el puerto `8000`.
 - Expone el servicio localmente en el puerto `8888`.
+- Sirve la interfaz y la API desde el mismo origen.
 - Carga las variables desde `.env`.
 - Monta la carpeta local `./data` como `/data`.
 

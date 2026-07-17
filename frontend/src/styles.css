@@ -1,0 +1,161 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  font-family: "Instrument Sans Variable", sans-serif;
+  color-scheme: light;
+  --paper: #f4f1e8;
+  --surface: #fbfaf6;
+  --surface-raised: #ffffff;
+  --surface-subtle: #eeece4;
+  --ink: #18211d;
+  --ink-soft: #2b3731;
+  --ink-muted: #5d6862;
+  --ink-faint: #818a85;
+  --border: #d9d6cc;
+  --border-strong: #bdbbb2;
+  --accent: #197457;
+  --accent-wash: #dfeee8;
+  --focus: #3b9b79;
+}
+
+.dark {
+  color-scheme: dark;
+  --paper: #101512;
+  --surface: #171d19;
+  --surface-raised: #202722;
+  --surface-subtle: #1c231f;
+  --ink: #eef2ed;
+  --ink-soft: #d9e0da;
+  --ink-muted: #abb5ae;
+  --ink-faint: #7f8a83;
+  --border: #303a34;
+  --border-strong: #465149;
+  --accent: #39a77e;
+  --accent-wash: #18382d;
+  --focus: #57c79d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+button,
+textarea,
+input {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.font-mono {
+  font-family: "JetBrains Mono Variable", monospace;
+}
+
+.eyebrow {
+  font-family: "JetBrains Mono Variable", monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.prose-rag {
+  overflow-wrap: anywhere;
+}
+
+.prose-rag > *:first-child {
+  margin-top: 0;
+}
+
+.prose-rag > *:last-child {
+  margin-bottom: 0;
+}
+
+.prose-rag p,
+.prose-rag ul,
+.prose-rag ol,
+.prose-rag pre,
+.prose-rag blockquote {
+  margin-block: 0.75rem;
+}
+
+.prose-rag ul,
+.prose-rag ol {
+  padding-left: 1.25rem;
+}
+
+.prose-rag ul {
+  list-style: disc;
+}
+
+.prose-rag ol {
+  list-style: decimal;
+}
+
+.prose-rag strong {
+  font-weight: 700;
+}
+
+.prose-rag code {
+  border: 1px solid var(--border);
+  background: var(--surface-subtle);
+  padding: 0.1rem 0.3rem;
+  font-family: "JetBrains Mono Variable", monospace;
+  font-size: 0.78em;
+}
+
+.prose-rag pre {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  background: var(--surface-subtle);
+  padding: 1rem;
+}
+
+.prose-rag pre code {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.prose-rag a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+::selection {
+  background: var(--accent);
+  color: white;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
