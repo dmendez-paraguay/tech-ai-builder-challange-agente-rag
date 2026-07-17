@@ -6,6 +6,7 @@ import { DocumentPanel } from "@/components/DocumentPanel"
 import { StatusPill } from "@/components/StatusPill"
 import { Button } from "@/components/ui/button"
 import { askQuestion, getHealth, uploadPdf, type HealthResponse } from "@/lib/api"
+import { createId } from "@/lib/id"
 
 type Theme = "light" | "dark"
 
@@ -74,7 +75,7 @@ export default function App() {
 
   const handleAsk = async (question: string) => {
     const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: createId(),
       role: "user",
       content: question,
     }
@@ -87,7 +88,7 @@ export default function App() {
       setMessages((current) => [
         ...current,
         {
-          id: crypto.randomUUID(),
+          id: createId(),
           role: "assistant",
           content: result.answer,
           sources: result.sources,
