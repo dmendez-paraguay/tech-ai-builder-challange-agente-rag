@@ -9,9 +9,33 @@ import os
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
+from langchain_core.prompts import PromptTemplate
 
+from app.answer_status import parse_answer
 from app.loader import load_and_split_pdf
 from app.llm_factory import get_llm
+
+
+QA_PROMPT = PromptTemplate.from_template(
+    """Usá únicamente el contexto proporcionado para responder la pregunta.
+
+Si el contexto contiene información suficiente para responder, comenzá tu respuesta con:
+[ESTADO: RESPONDIDA]
+
+Si el contexto no contiene la información solicitada o no permite responder con seguridad,
+comenzá tu respuesta con:
+[ESTADO: SIN_RESPUESTA]
+Luego explicá claramente que la respuesta no se encuentra en el documento.
+
+No inventes información y no omitas el marcador de estado.
+
+Contexto:
+{context}
+
+Pregunta: {question}
+
+Respuesta:"""
+)
 
 
 class RAGAgent:
@@ -51,22 +75,15 @@ class RAGAgent:
             llm=llm,
             retriever=self.vectorstore.as_retriever(search_kwargs={"k": 4}),
             return_source_documents=True,
+            chain_type_kwargs={"prompt": QA_PROMPT},
         )
 
     def query(self, question: str) -> dict:
         if self.qa_chain is None:
             raise RuntimeError("El agente no fue inicializado. Llamá a load_and_index() primero.")
 
-        scored_documents = self.vectorstore.similarity_search_with_relevance_scores(
-            question,
-            k=4,
-        )
         result = self.qa_chain.invoke({"query": question})
-
-        relevance_threshold = float(os.getenv("RAG_RELEVANCE_THRESHOLD", "0.35"))
-        low_relevance = not scored_documents or max(
-            score for _, score in scored_documents
-        ) < relevance_threshold
+        answer, answer_not_found = parse_answer(result["result"])
 
         sources = sorted({
             f"{doc.metadata.get('source', 'desconocido')} (pág. {doc.metadata.get('page', '?')})"
@@ -74,7 +91,7 @@ class RAGAgent:
         })
 
         return {
-            "answer": result["result"],
+            "answer": answer,
             "sources": sources,
-            "low_relevance": low_relevance,
+            "low_relevance": answer_not_found,
         }
