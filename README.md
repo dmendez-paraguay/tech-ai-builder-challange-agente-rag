@@ -261,54 +261,39 @@ Formato de respuesta ilustrativo (reemplazalo con una salida real del agente):
 
 > El texto de la respuesta depende del documento y del modelo configurado. Los números de página provienen de los metadatos de `PyPDFLoader` y comienzan en `0`.
 
-### Ejemplos de preguntas y respuestas generadas
+### Evidencias de ejecución
 
-Estas preguntas son deliberadamente genéricas para que funcionen con distintos documentos:
+Las siguientes capturas muestran el flujo completo de uso del agente RAG con el documento de prueba `manual-garantía-productos-bimbambuy.pdf`.
 
-1. `¿Cuál es el tema principal del documento?`
-2. `¿Podés resumir los puntos más importantes del documento?`
-3. `¿Qué dice el documento sobre [tema de interés]?`
+#### 1. Documento cargado e indexado
 
-Los siguientes bloques están preparados para documentar ejecuciones reales. Después de cargar el PDF de demostración, ejecutá cada pregunta y reemplazá los marcadores con la respuesta y las fuentes devueltas por `POST /ask`.
+La aplicación reconoce el PDF cargado, genera el índice vectorial y habilita las consultas.
 
-#### Ejemplo 1
+![Documento cargado e indexado](docs/evidencias/01-documento-cargado.png)
 
-**Pregunta:** `¿Cuál es el tema principal del documento?`
+#### 2. Respuesta encontrada con fuentes
 
-```json
-{
-  "answer": "<PEGAR AQUÍ LA RESPUESTA REAL DEL AGENTE>",
-  "sources": [
-    "<PEGAR AQUÍ LAS FUENTES REALES>"
-  ]
-}
-```
+**Pregunta:** `¿Cuál es el tema principal?`
 
-#### Ejemplo 2
+El agente responde utilizando la información del documento y muestra las páginas que respaldan la respuesta.
 
-**Pregunta:** `¿Podés resumir los puntos más importantes del documento?`
+![Respuesta encontrada con fuentes](docs/evidencias/02-respuesta-con-fuentes.png)
 
-```json
-{
-  "answer": "<PEGAR AQUÍ LA RESPUESTA REAL DEL AGENTE>",
-  "sources": [
-    "<PEGAR AQUÍ LAS FUENTES REALES>"
-  ]
-}
-```
+#### 3. Información no encontrada en el documento
 
-#### Ejemplo 3
+Cuando el documento no contiene información suficiente para responder, el agente lo indica mediante una advertencia. Las páginas recuperadas se presentan como fragmentos consultados y no como fuentes que respalden una respuesta.
 
-**Pregunta:** `¿Qué dice el documento sobre [tema de interés]?`
+![Información no encontrada en el documento](docs/evidencias/03-respuesta-sin-informacion.png)
 
-```json
-{
-  "answer": "<PEGAR AQUÍ LA RESPUESTA REAL DEL AGENTE>",
-  "sources": [
-    "<PEGAR AQUÍ LAS FUENTES REALES>"
-  ]
-}
-```
+#### 4. OCI 
+
+Detalles de la Instancia OCI.
+
+![Detalles de la Instancia OCI](docs/evidencias/1-oci.png)
+
+Consola de terminal del Ubuntu 
+
+![Detalles de la Instancia OCI](docs/evidencias/2-oci.png)
 
 Si todavía no se indexó un documento, `POST /ask` devuelve HTTP `503`:
 
