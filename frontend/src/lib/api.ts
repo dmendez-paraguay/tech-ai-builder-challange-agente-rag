@@ -13,6 +13,7 @@ export interface UploadResponse {
 export interface AnswerResponse {
   answer: string
   sources: string[]
+  low_relevance: boolean
 }
 
 interface ApiErrorBody {

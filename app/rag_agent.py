@@ -57,7 +57,16 @@ class RAGAgent:
         if self.qa_chain is None:
             raise RuntimeError("El agente no fue inicializado. Llamá a load_and_index() primero.")
 
+        scored_documents = self.vectorstore.similarity_search_with_relevance_scores(
+            question,
+            k=4,
+        )
         result = self.qa_chain.invoke({"query": question})
+
+        relevance_threshold = float(os.getenv("RAG_RELEVANCE_THRESHOLD", "0.35"))
+        low_relevance = not scored_documents or max(
+            score for _, score in scored_documents
+        ) < relevance_threshold
 
         sources = sorted({
             f"{doc.metadata.get('source', 'desconocido')} (pág. {doc.metadata.get('page', '?')})"
@@ -67,4 +76,5 @@ class RAGAgent:
         return {
             "answer": result["result"],
             "sources": sources,
+            "low_relevance": low_relevance,
         }

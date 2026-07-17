@@ -35,6 +35,7 @@ class Question(BaseModel):
 class Answer(BaseModel):
     answer: str
     sources: List[str] = []
+    low_relevance: bool = False
 
 
 class DocumentUploadResponse(BaseModel):

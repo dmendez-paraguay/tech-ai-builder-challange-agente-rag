@@ -1,4 +1,4 @@
-import { ArrowUp, BookOpen, FileQuestion, LoaderCircle, Sparkles } from "lucide-react"
+import { AlertTriangle, ArrowUp, BookOpen, FileQuestion, LoaderCircle, Sparkles } from "lucide-react"
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react"
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
@@ -11,6 +11,7 @@ export interface ChatMessage {
   role: "user" | "assistant"
   content: string
   sources?: string[]
+  lowRelevance?: boolean
 }
 
 interface ChatPanelProps {
@@ -127,9 +128,21 @@ export function ChatPanel({ messages, canAsk, isAsking, onAsk }: ChatPanelProps)
 
                   {message.sources && message.sources.length > 0 && (
                     <div className="mt-4 border-t border-[var(--border)] pt-3">
+                      {message.lowRelevance && (
+                        <div
+                          className="mb-3 flex items-start gap-2.5 rounded-lg border border-amber-600/30 bg-amber-500/10 px-3 py-2.5 text-xs leading-5 text-amber-900 dark:text-amber-200"
+                          role="note"
+                        >
+                          <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                          <p>
+                            <strong>El documento no contiene información suficientemente relacionada con esta consulta.</strong>{" "}
+                            Las páginas siguientes son los fragmentos más cercanos que el sistema revisó, pero no deben interpretarse como fuentes que respalden una respuesta.
+                          </p>
+                        </div>
+                      )}
                       <p className="mb-2 flex items-center gap-1.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--ink-faint)]">
                         <BookOpen className="size-3.5" aria-hidden="true" />
-                        Fuentes
+                        {message.lowRelevance ? "Fragmentos consultados" : "Fuentes"}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {message.sources.map((source) => (

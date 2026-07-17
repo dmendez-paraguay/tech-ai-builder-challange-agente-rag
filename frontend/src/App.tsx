@@ -91,6 +91,7 @@ export default function App() {
           role: "assistant",
           content: result.answer,
           sources: result.sources,
+          lowRelevance: result.low_relevance,
         },
       ])
     } catch (requestError) {
